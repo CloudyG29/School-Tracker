@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -119,7 +120,7 @@ public class TimetableFragment extends Fragment {
                 currentDate = LocalDate.now().plusDays(currentPosition - InfiniteDayAdapter.CENTER_POSITION);
             }
             String formattedDate = currentDate.toString(); // yyyy-MM-dd
-            showAddEventDialog(formattedDate);
+            showEventDialog(formattedDate, null);
         });
 
 
@@ -128,7 +129,7 @@ public class TimetableFragment extends Fragment {
 
         return view;
     }
-    private void showAddEventDialog(String selectedDate) {
+    public void showEventDialog(String selectedDate, @Nullable Event existingEvent) {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.add_event_dialog, null);
         EditText title = dialogView.findViewById(R.id.editTitle);
         EditText location = dialogView.findViewById(R.id.editLocation);
@@ -141,6 +142,50 @@ public class TimetableFragment extends Fragment {
         final String[] startTime = {""};
         final String[] endTime = {""};
 
+        // Color setup
+        Map<String, Integer> colorMap = new HashMap<>();
+        colorMap.put("Red", Color.RED);
+        colorMap.put("Green", Color.GREEN);
+        colorMap.put("Blue", Color.BLUE);
+        colorMap.put("Yellow", Color.YELLOW);
+        colorMap.put("Purple", Color.parseColor("#9C27B0"));
+        colorMap.put("Teal", Color.parseColor("#009688"));
+
+        String[] colorNames = colorMap.keySet().toArray(new String[0]);
+        ColorSpinnerAdapter colorAdapter = new ColorSpinnerAdapter(requireContext(), colorNames, colorMap);
+        colorSpinner.setAdapter(colorAdapter);
+
+        ArrayAdapter<String> repeatAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item,
+                new String[]{"None", "Daily", "Weekly"});
+        repeatAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        repeatSpinner.setAdapter(repeatAdapter);
+
+        // Prefill if editing
+        if (existingEvent != null) {
+            title.setText(existingEvent.getTitle());
+            location.setText(existingEvent.getLocation());
+            date.setText(existingEvent.getDate());
+            startTime[0] = existingEvent.getStartTime();
+            endTime[0] = existingEvent.getEndTime();
+            startBtn.setText(startTime[0]);
+            endBtn.setText(endTime[0]);
+
+            // Set repeat spinner
+            int repeatPos = repeatAdapter.getPosition(existingEvent.getRepetition());
+            repeatSpinner.setSelection(repeatPos);
+
+            // Set color spinner
+            for (int i = 0; i < colorNames.length; i++) {
+                if (colorMap.get(colorNames[i]) == existingEvent.getColor()) {
+                    colorSpinner.setSelection(i);
+                    break;
+                }
+            }
+        } else {
+            date.setText(selectedDate);
+        }
+
+        // Time pickers
         startBtn.setOnClickListener(v -> {
             TimePickerDialog picker = new TimePickerDialog(requireContext(), (view, hour, minute) -> {
                 startTime[0] = String.format("%02d:%02d", hour, minute);
@@ -157,31 +202,10 @@ public class TimetableFragment extends Fragment {
             picker.show();
         });
 
-        Map<String, Integer> colorMap = new HashMap<>();
-        colorMap.put("Red", Color.RED);
-        colorMap.put("Green", Color.GREEN);
-        colorMap.put("Blue", Color.BLUE);
-        colorMap.put("Yellow", Color.YELLOW);
-        colorMap.put("Purple", Color.parseColor("#9C27B0"));
-        colorMap.put("Teal", Color.parseColor("#009688"));
-
-        String[] colorNames = colorMap.keySet().toArray(new String[0]);
-
-        ColorSpinnerAdapter colorAdapter = new ColorSpinnerAdapter(requireContext(), colorNames, colorMap);
-        colorSpinner.setAdapter(colorAdapter);
-
-        ArrayAdapter<String> repeatAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item,
-                new String[]{"None", "Daily", "Weekly"});
-        repeatAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        repeatSpinner.setAdapter(repeatAdapter);
-
-        date.setText(selectedDate);
+        // Date picker
         date.setInputType(InputType.TYPE_NULL);
-        date.setFocusable(false);
-        date.setClickable(true);
-
         date.setOnClickListener(v -> {
-            String[] parts = selectedDate.split("-");
+            String[] parts = date.getText().toString().split("-");
             int year = Integer.parseInt(parts[0]);
             int month = Integer.parseInt(parts[1]) - 1;
             int day = Integer.parseInt(parts[2]);
@@ -195,10 +219,11 @@ public class TimetableFragment extends Fragment {
             datePickerDialog.show();
         });
 
+        // Dialog
         AlertDialog dialog = new AlertDialog.Builder(requireContext())
-                .setTitle("Add Event")
+                .setTitle(existingEvent != null ? "Edit Event" : "Add Event")
                 .setView(dialogView)
-                .setPositiveButton("Save", null)
+                .setPositiveButton(existingEvent != null ? "Update" : "Save", null)
                 .setNegativeButton("Cancel", null)
                 .create();
 
@@ -221,36 +246,44 @@ public class TimetableFragment extends Fragment {
                     location.setError("Location is required");
                     return;
                 }
-                if (d.isEmpty()) {
-                    Toast.makeText(requireContext(), "Date is required", Toast.LENGTH_SHORT).show();
-                    return;
-                }
                 if (st.isEmpty()) {
                     Toast.makeText(requireContext(), "Start time is required", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
                 if (et.isEmpty()) {
                     Toast.makeText(requireContext(), "End time is required", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
                 if (st.compareTo(et) >= 0) {
                     Toast.makeText(requireContext(), "End time must be after start time", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                int color = colorMap.containsKey(colorName) ? colorMap.get(colorName) : Color.GRAY;
 
-                Event event = new Event(t, st, et, l, d, r, color);
-                new Thread(() -> AppDatabase.getInstance(requireContext()).eventDao().insert(event)).start();
+                int color = colorMap.getOrDefault(colorName, Color.GRAY);
 
-                Toast.makeText(requireContext(), "Event Saved!", Toast.LENGTH_SHORT).show();
+                if (existingEvent != null) {
+                    existingEvent.setTitle(t);
+                    existingEvent.setLocation(l);
+                    existingEvent.setDate(d);
+                    existingEvent.setStartTime(st);
+                    existingEvent.setEndTime(et);
+                    existingEvent.setRepetition(r);
+                    existingEvent.setColor(color);
+
+                    new Thread(() -> AppDatabase.getInstance(requireContext()).eventDao().update(existingEvent)).start();
+                    Toast.makeText(requireContext(), "Event Updated!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Event event = new Event(t, st, et, l, d, r, color);
+                    new Thread(() -> AppDatabase.getInstance(requireContext()).eventDao().insert(event)).start();
+                    Toast.makeText(requireContext(), "Event Saved!", Toast.LENGTH_SHORT).show();
+                }
                 dialog.dismiss();
             });
         });
 
         dialog.show();
     }
+
 
 
 

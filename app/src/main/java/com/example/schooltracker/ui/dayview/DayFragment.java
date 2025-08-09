@@ -15,7 +15,9 @@ import android.view.ViewGroup;
 
 import com.example.schooltracker.R;
 import com.example.schooltracker.model.Event;
+import com.example.schooltracker.ui.timetable.EventActionListener;
 import com.example.schooltracker.ui.timetable.TimetableAdapter;
+import com.example.schooltracker.ui.timetable.TimetableFragment;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -50,7 +52,29 @@ public class DayFragment extends Fragment {
 
         RecyclerView rv = root.findViewById(R.id.dayRecycler);
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
-        TimetableAdapter adapter = new TimetableAdapter(requireContext(), new ArrayList<Event>());
+        TimetableAdapter adapter = new TimetableAdapter(requireContext(), new ArrayList<>(), new EventActionListener() {
+            TimetableFragment T;
+            @Override
+            public void onEdit(Event event) {
+                // Pass the date from the event and the existing event itself
+                T.showEventDialog(event.getDate(), event);
+            }
+
+            @Override
+            public void onDelete(Event event) {
+                DayViewModel vm = new ViewModelProvider(
+                        requireActivity(),
+                        ViewModelProvider.AndroidViewModelFactory
+                                .getInstance(requireActivity().getApplication())
+                ).get(DayViewModel.class);
+
+                vm.deleteEvent(event);
+            }
+
+
+
+        });
+
         rv.setAdapter(adapter);
 
         DayViewModel vm = new ViewModelProvider(
@@ -76,9 +100,9 @@ public class DayFragment extends Fragment {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return false;
 
         LocalDate targetDate = LocalDate.parse(isoDate);
-        LocalDate eventDate = LocalDate.parse(e.date);
+        LocalDate eventDate = LocalDate.parse(e.getDate());
 
-        switch (e.repetition) {
+        switch (e.getRepetition()) {
             case "None":
                 return eventDate.equals(targetDate);
             case "Daily":

@@ -60,9 +60,9 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
     public void onBindViewHolder(@NonNull TimetableAdapter.ViewHolder holder, int position) {
         Event event = eventList.get(position);
 
-        holder.subjectText.setText(event.title);
-        holder.timeText.setText(event.startTime + " - " + event.endTime);
-        holder.roomText.setText(event.location);
+        holder.subjectText.setText(event.getTitle());
+        holder.timeText.setText(event.getStartTime() + " - " + event.getEndTime());
+        holder.roomText.setText(event.getLocation());
 
         // 👉 show bottom sheet on click
         holder.itemView.setOnClickListener(v -> showBottomSheet(v.getContext(), event));
@@ -87,19 +87,18 @@ public class TimetableAdapter extends RecyclerView.Adapter<TimetableAdapter.View
         TextView edit = sheetView.findViewById(R.id.editEvent);
         TextView delete = sheetView.findViewById(R.id.deleteEvent);
 
-        title.setText(event.title);
-        dateTime.setText(event.startTime + " → " + event.endTime);
-        location.setText(event.location);
-
-        edit.setOnClickListener(v -> {
-            dialog.dismiss();
-            // 👉 Launch your Edit Event screen/dialog here
-        });
+        title.setText(event.getTitle());
+        dateTime.setText(event.getStartTime() + " → " + event.getEndTime());
+        location.setText(event.getLocation());
 
         delete.setOnClickListener(v -> {
+            listener.onDelete(event);
             dialog.dismiss();
-            // 👉 Call your ViewModel/DAO to delete the event
-            // e.g., viewModel.deleteEvent(event);
+        });
+
+        edit.setOnClickListener(v -> {
+            listener.onEdit(event);
+            dialog.dismiss();
         });
 
         dialog.setContentView(sheetView);
