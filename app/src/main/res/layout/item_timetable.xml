@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:padding="16dp"
     android:layout_margin="8dp"
@@ -7,30 +8,76 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
-    <TextView
-        android:id="@+id/subjectText"
-        android:text="Subject"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="#000000"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:padding="2dp">
 
-    <TextView
-        android:id="@+id/timeText"
-        android:text="Time"
-        android:textSize="14sp"
-        android:textColor="#555555"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp" />
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:srcCompat="@drawable/ic_subject" />
 
-    <TextView
-        android:id="@+id/roomText"
-        android:text="Room"
-        android:textSize="14sp"
-        android:textColor="#777777"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp" />
+        <TextView
+            android:id="@+id/subjectText"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:paddingStart="5dp"
+            android:text="Subject"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:padding="2dp">
+
+        <ImageView
+            android:id="@+id/imageView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            app:srcCompat="@drawable/ic_time" />
+
+        <TextView
+            android:id="@+id/timeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:paddingStart="5dp"
+            android:text="Time"
+            android:textColor="#555555"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="9"
+        android:orientation="horizontal"
+        android:padding="2dp">
+
+        <ImageView
+            android:id="@+id/imageView4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            app:srcCompat="@drawable/ic_location" />
+
+        <TextView
+            android:id="@+id/roomText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:paddingStart="5dp"
+            android:text="Room"
+            android:textColor="#777777"
+            android:textSize="14sp" />
+    </LinearLayout>
+
 </LinearLayout>
