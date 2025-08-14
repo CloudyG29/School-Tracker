@@ -1,15 +1,29 @@
 package com.example.schooltracker.ui.timetable;
 
 import static androidx.core.content.ContentProviderCompat.requireContext;
+import static androidx.core.content.ContextCompat.getSystemService;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.AlarmManager;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.TimePickerDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -20,10 +34,12 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RemoteViews;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.schooltracker.MyNotificationReceiver;
 import com.example.schooltracker.R;
 import com.example.schooltracker.model.AppDatabase;
 import com.example.schooltracker.model.Event;
@@ -43,6 +59,8 @@ import java.util.Map;
  * create an instance of this fragment.
  */
 public class TimetableFragment extends Fragment {
+    private final String channelId = "i.apps.notifications"; // Unique channel ID for notifications
+    private final String description = "Test notification";  // Description for the notification channel
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -85,6 +103,7 @@ public class TimetableFragment extends Fragment {
     }
 
 
+    @RequiresPermission(Manifest.permission.SCHEDULE_EXACT_ALARM)
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_timetable, container, false);
@@ -126,9 +145,42 @@ public class TimetableFragment extends Fragment {
 
 
         viewPager.setOffscreenPageLimit(1);
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.HOUR_OF_DAY, 13);
+            calendar.set(Calendar.MINUTE, 59);
+            calendar.set(Calendar.SECOND, 0);
+
+            Intent intent = new Intent(requireContext(), MyNotificationReceiver.class);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(
+                    requireContext(),
+                    0,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+            );
+
+            AlarmManager alarmManager = (AlarmManager) requireActivity().getSystemService(Context.ALARM_SERVICE);
+            alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    calendar.getTimeInMillis(),
+                    pendingIntent
+            );
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.POST_NOTIFICATIONS)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+                    ActivityCompat.requestPermissions(requireActivity(),
+                            new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                            101
+                    );
+
+                }
+            }
+
 
         return view;
     }
+
     public void showEventDialog(String selectedDate, @Nullable Event existingEvent) {
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.add_event_dialog, null);
         EditText title = dialogView.findViewById(R.id.editTitle);

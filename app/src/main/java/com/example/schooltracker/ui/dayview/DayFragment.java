@@ -1,9 +1,17 @@
 package com.example.schooltracker.ui.dayview;
 
+import static androidx.core.content.ContextCompat.getSystemService;
+
+import android.Manifest;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -21,6 +29,7 @@ import com.example.schooltracker.ui.timetable.TimetableFragment;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class DayFragment extends Fragment {
@@ -42,6 +51,7 @@ public class DayFragment extends Fragment {
         if (getArguments() != null) {
             dayName = getArguments().getString(ARG_DAY);
         }
+
     }
 
     @Override
@@ -121,4 +131,6 @@ public class DayFragment extends Fragment {
         }
         return dateString;
     }
+
+
 }
