@@ -59,8 +59,12 @@ import java.util.Map;
  * create an instance of this fragment.
  */
 public class TimetableFragment extends Fragment {
-    private final String channelId = "i.apps.notifications"; // Unique channel ID for notifications
-    private final String description = "Test notification";  // Description for the notification channel
+    public String StartTime = "";
+    public String EndTime = "";
+
+   public int StartHour;
+   public int StartMin;
+
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -146,8 +150,8 @@ public class TimetableFragment extends Fragment {
 
         viewPager.setOffscreenPageLimit(1);
             Calendar calendar = Calendar.getInstance();
-            calendar.set(Calendar.HOUR_OF_DAY, 13);
-            calendar.set(Calendar.MINUTE, 59);
+            calendar.set(Calendar.HOUR_OF_DAY, StartHour);
+            calendar.set(Calendar.MINUTE, StartMin);
             calendar.set(Calendar.SECOND, 0);
 
             Intent intent = new Intent(requireContext(), MyNotificationReceiver.class);
@@ -242,6 +246,8 @@ public class TimetableFragment extends Fragment {
             TimePickerDialog picker = new TimePickerDialog(requireContext(), (view, hour, minute) -> {
                 startTime[0] = String.format("%02d:%02d", hour, minute);
                 startBtn.setText(startTime[0]);
+                //System.out.println(startTime[0]);
+                StartTime = startTime[0];
             }, 12, 0, true);
             picker.show();
         });
@@ -250,6 +256,7 @@ public class TimetableFragment extends Fragment {
             TimePickerDialog picker = new TimePickerDialog(requireContext(), (view, hour, minute) -> {
                 endTime[0] = String.format("%02d:%02d", hour, minute);
                 endBtn.setText(endTime[0]);
+                EndTime = endTime[0];
             }, 13, 0, true);
             picker.show();
         });
@@ -330,6 +337,11 @@ public class TimetableFragment extends Fragment {
                     Toast.makeText(requireContext(), "Event Saved!", Toast.LENGTH_SHORT).show();
                 }
                 dialog.dismiss();
+                StartTime = st;
+                StartHour = Integer.parseInt(StartTime.split(":")[0]);
+                StartMin = Integer.parseInt(StartTime.split(":")[1]);
+                //System.out.println(st);
+                EndTime = et;
             });
         });
 
